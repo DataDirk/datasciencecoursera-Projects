@@ -25,11 +25,9 @@ shinyUI(fluidPage(
                                                  "on Github.")),
   wellPanel(
           h4("Instructions for Use:"),
-          "Select data and magnitude range. The plot is automatically updated.",
-          br(), 
-          "You can also plot a histogram of the magnitude levels by pressing the Histogram button."
+          tags$ul(tags$li("Select data and magnitude range. The plot is automatically updated."),
+                  tags$li("You can also plot a histogram of the magnitude levels by pressing the Histogram button."))
   ),
-#  br(), br(),
   # Sidebar with a slider input for number of bins 
   sidebarLayout(position="left",
         sidebarPanel(
