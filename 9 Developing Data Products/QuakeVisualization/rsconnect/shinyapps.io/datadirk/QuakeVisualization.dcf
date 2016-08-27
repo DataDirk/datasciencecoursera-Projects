@@ -1,0 +1,10 @@
+name: QuakeVisualization
+account: datadirk
+server: shinyapps.io
+appId: 120386
+bundleId: 535771
+url: https://datadirk.shinyapps.io/QuakeVisualization/
+when: 1471587343.30167
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md
