@@ -1,9 +1,17 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "Practical Machine Learning Course Project"
 output: 
   html_document:
     keep_md: true
 ---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen=999)
+library(lattice)
+library(readr)
+```
 ## Introduction
 
 It is now possible to collect a large amount of data about personal
@@ -31,183 +39,27 @@ site:
 
 * Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) [52K]
 
-The variables included in this dataset are:
-
-* **steps**: Number of steps taking in a 5-minute interval (missing
-    values are coded as `NA`)
-
-* **date**: The date on which the measurement was taken in YYYY-MM-DD
-    format
-
-* **interval**: Identifier for the 5-minute interval in which
-    measurement was taken
-
-
 
 
 The dataset is stored in a comma-separated-value (CSV) file and there
 are a total of 17,568 observations in this
 dataset.
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-options(scipen=999)
-library(lattice)
-```
-
 <br><br>
 
 ## Loading and preprocessing the data
 ```{r load, echo=TRUE}
-activity<-read.csv("activity.csv")
+# set working directory
+setwd("~/Documents/workspace/Git_Repositories/Coursera Data Science/datasciencecoursera Projects/08 Practical Machine Learning Project")
+
+# load training dataset
+pml_training <- read_csv("~/Documents/workspace/Git_Repositories/Coursera Data Science/datasciencecoursera Projects/08 Practical Machine Learning Project/Data/pml-training.csv")
 ```
 As can be seen below, the data has been correctedly loaded into the data frame **activity**:
 ```{r , echo=TRUE}
-str(activity)
+str(pml_training)
 ```
 
-```{r , echo=TRUE}
-head(activity)
-```
-Also, the variable ``steps`` contains several missing
-    values coded as `NA`. These will be imputed later in this assigment.
 
 <br><br>
 
-## What is mean total number of steps taken per day?
-#### 1. Calculate the total number of steps taken per day
-In order to calculate the total number of steps per day, the data is aggregated by day and summed up:
-
-```{r , echo=TRUE}
-activity_daysum<-aggregate(steps ~ date, data=activity, FUN=sum)
-```
-
-```{r , echo=TRUE, results="asis"}
-library(xtable)
-activity_daysum<-aggregate(steps ~ date, data=activity, FUN=sum)
-xt<-xtable(activity_daysum)
-print(xt, type="html")
-```
-
-The table above contains only `r nrow(xt)` days, while the original data frame had `r nlevels(activity$date)`. The difference is explained by the number of days that have missing data, ie, that do not contain steps.
-
-<br><br>
-
-#### 2. Make a histogram of the total number of steps taken each day
-```{r , echo=TRUE}
-hist(activity_daysum$steps, main="Histogram of steps taken per day", xlab="Steps per day", ylim = c(0,40))
-```
-
-
-#### 3. Calculate and report the mean and median of the total number of steps taken per day
-Using `activity_daysum` the mean and median number of steps taken per day can be determined:
-```{r , echo=TRUE}
-meansteps<-mean(activity_daysum$steps)
-mediansteps<-median(activity_daysum$steps)
-```
-* The **mean** number of steps per day is `r meansteps`.
-
-* The **median** number of steps per day is `r mediansteps`.
-
-<br><br>
-
-## What is the average daily activity pattern?
-#### 1. Make a time series plot (i.e. 𝚝𝚢𝚙𝚎 = "𝚕") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-Using the `aggregate` function the average number of steps per interval across all days is calculated and plotted subsequently.
-```{r , echo=TRUE}
-activity_interval<-aggregate(steps ~ interval, data=activity, FUN=mean)
-plot(activity_interval$interval, activity_interval$steps, type='l',main="Average steps per interval", xlab="Interval", ylab="Average Steps")
-```
-
-#### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-
-The interval with on average maximum steps is calculated using
-```{r , echo=TRUE}
-activity_interval$interval[activity_interval$steps==max(activity_interval$steps)]
-```
-
-The maximum average number of steps occurs in interval `r activity_interval$interval[activity_interval$steps==max(activity_interval$steps)]` and is found to be `r max(activity_interval$steps)` (see also plot above).
-
-## Imputing missing values
-#### 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with 𝙽𝙰s)
-
-As shown above, the dataset contains missing data coded as `NA` in column `Steps`. The total number of rows with missing data is determined using
-```{r , echo=TRUE}
-sum(is.na(activity[,1]))
-```
-
-The dataset contains `r sum(is.na(activity[,1]))` rows with missing data.
-
-#### 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-
-
-#### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-
-
-```{r , echo=TRUE}
-activityALL<-activity
-for(i in 1:length(activityALL$steps)) {
-        if(is.na(activityALL$steps[i])) {
-                activityALL$steps[i]=activity_interval$steps[which(activity_interval$interval==activityALL$interval[i])]
-        }
-}
-
-```
-
-
-
-#### 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. 
-
-
-```{r , echo=TRUE}
-activity_daysum<-aggregate(steps ~ date, data=activityALL, FUN=sum)
-hist(activity_daysum$steps, main="Histogram of steps taken per day", xlab="Steps per day", ylim = c(0,40))
-```
-
-Using `activity_daysum` the mean and median number of steps taken per day can be determined:
-```{r , echo=TRUE}
-meansteps<-mean(activity_daysum$steps)
-mediansteps<-median(activity_daysum$steps)
-```
-* The **mean** number of steps per day is `r meansteps`.
-
-* The **median** number of steps per day is `r mediansteps`.
-
-
-#### Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
-
-Imputing the missing values with the mean value across all days for that particular interval
-
-* does not change the mean value since the mean value is used to impute missing data
-* shifts the median value to the mean value
-* increases the frequency of steps per day in the center bin, ie, around the mean value.
-
-<br><br>
-
-## Are there differences in activity patterns between weekdays and weekends?
-
-#### 1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-
-```{r , echo=TRUE}
-activity$date<-as.Date(activity$date)
-activity$day<-"weekday"
-activity$day[(weekdays(activity$date)=="Sunday" | weekdays(activity$date)=="Saturday")]="weekend"
-activity_interval<-aggregate(steps ~ interval+ day, data=activity, FUN=mean)
-
-```
-
-#### 2. Make a panel plot containing a time series plot (i.e. 𝚝𝚢𝚙𝚎 = "𝚕") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
-
-```{r , echo=TRUE}
-xyplot(steps ~ interval | day, data = activity_interval, layout = c(1, 2), type='l')
-
-```
-
-The plot above demonstrates different activity patterns during weekend and weekdays.  
-
-Assuming that the intervals follow a daily routine, the following observations can be made:
-
-* Early and late intervals show low number of steps, ie, low physical activity. One explanation for this is that a high number of subjects were asleep durin these early and late hours of the day.
-* During weekdays a pronounced activity peak accurs around `r activity_interval$interval[activity_interval$steps==max(activity_interval$steps[activity_interval$day=="weekday"])]` and is `r max(activity_interval$steps[activity_interval$day=="weekday"])`. In comparison to weekends, this peak is sharper and higher, and might indicate the morning route and commute to work.
-* This peak phase is followed by a low-activity phase, lower also in comparison to weekends. An interpretation could be seditary work during office hours.
