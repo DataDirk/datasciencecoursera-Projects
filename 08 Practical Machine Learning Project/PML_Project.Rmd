@@ -3,63 +3,147 @@ title: "Practical Machine Learning Course Project"
 output: 
   html_document:
     keep_md: true
+    toc: true
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(scipen=999)
-library(lattice)
+
+library(dplyr)
 library(readr)
+library(caret)
+library(rpart)
+library(rattle)
+library(randomForest)
 ```
-## Introduction
+## Background
 
-It is now possible to collect a large amount of data about personal
-movement using activity monitoring devices such as a
-[Fitbit](http://www.fitbit.com), [Nike
-Fuelband](http://www.nike.com/us/en_us/c/nikeplus-fuelband), or
-[Jawbone Up](https://jawbone.com/up). These type of devices are part of
-the "quantified self" movement -- a group of enthusiasts who take
-measurements about themselves regularly to improve their health, to
-find patterns in their behavior, or because they are tech geeks. But
-these data remain under-utilized both because the raw data are hard to
-obtain and there is a lack of statistical methods and software for
-processing and interpreting the data.
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.  
 
-This assignment makes use of data from a personal activity monitoring
-device. This device collects data at 5 minute intervals through out the
-day. The data consists of two months of data from an anonymous
-individual collected during the months of October and November, 2012
-and include the number of steps taken in 5 minute intervals each day.
+In this project, the goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <http://groupware.les.inf.puc-rio.br/har> (see the section on the Weight Lifting Exercise Dataset).
 
 ## Data
 
-The data for this assignment can be downloaded from the course web
-site:
+Data is loaded into two datasets:  
 
-* Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) [52K]
+* trainingset: serves to training and test datasets [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)  
 
+* quizset: dataset for to predict variable classe for the quiz [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
 
+The goal of the project is to predict the manner in which the subjects did the exercise. This is the "classe" variable in the training set. Any other variable may be used to predict with. A report describing how the model was built, how cross validation was used, what the expected out of sample error is, and why the particular choices were made. The prediction model is then used to predict 20 different test cases for the quiz section of the assignment.
 
-The dataset is stored in a comma-separated-value (CSV) file and there
-are a total of 17,568 observations in this
-dataset.
+```{r echo=FALSE, message=FALSE, warning=FALSE, results=FALSE, error=TRUE}
 
-<br><br>
-
-## Loading and preprocessing the data
-```{r load, echo=TRUE}
-# set working directory
-setwd("~/Documents/workspace/Git_Repositories/Coursera Data Science/datasciencecoursera Projects/08 Practical Machine Learning Project")
-
-# load training dataset
-pml_training <- read_csv("~/Documents/workspace/Git_Repositories/Coursera Data Science/datasciencecoursera Projects/08 Practical Machine Learning Project/Data/pml-training.csv")
 ```
-As can be seen below, the data has been correctedly loaded into the data frame **activity**:
+
+
+```{r load, echo=TRUE, message=FALSE, warning=FALSE, results=FALSE, error=TRUE}
+rm(list = ls())
+
+train_url <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+quiz_url <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+
+trainingset <- read_csv(train_url, na=c("#DIV/0!","NA", ""))
+quizset <- read_csv(quiz_url, na=c("#DIV/0!","NA", ""))
+```
+
+*trainingset* contains 19622 observations of 160 variables. *quizset* contains 20 observations of 160 variable.
+
+Using `str()` for the first 20 variables shows that the first seven variables of *trainingset* contain data not relevant to the analysis and can be removed. 
+
+```{r echo=TRUE, warning=FALSE, results=TRUE, error=FALSE}
+str(trainingset[c(1:20)])
+```
+Also, some columns have missing data ("NA", e.g. *kurtosis_roll_belt*) or undefined values "DIV/0!". The dataset is cleaned by only keeping columns in the dataframe *train2* which don't contain missing data using `is.na()`. Finally, the variable *classe* is factorized.
+
+```{r , echo=TRUE, warning=FALSE, results=FALSE, error=FALSE}
+
+# drop the first seven columns
+train1<- trainingset[-c(1:7)]
+
+# only keep columns which don't contain missing values NA
+train2<-select(train1, which(colSums(is.na(train1[, ]))==0))
+
+# encode variable classe as factor
+train2$classe<-factor(train2$classe)
+
+```
+
+Check if any near-zero variance variables exist, which don't contribute to the prediction:
+```{r}
+nearZeroVar(train2)
+```
+There are no near-zero-variance variables in the resulting dataset. Any existing ones have been removed when columns with missing values had been removed.
+
+
+Next, *trainingset* is partitioned into a training set and a test set using `createDataPartition`.
+```{r , echo=TRUE, warning=FALSE, results=FALSE, error=FALSE}
+set.seed(12345)
+
+inTrain <- createDataPartition(y=train2$classe, p=0.7, list=FALSE)
+# create training dataset
+train_data <- train2[inTrain,]
+
+# create test dataset
+test_data <- train2[-inTrain,]
+```
+*train_data* contains `r nrow(train_data)` observations of `r ncol(train_data)` variables, and *test_data* contains `r nrow(test_data)` observations of those variables.
+
+
+## Prediction with Classification Tree
+In a first step, a classification tree model is created using `rpart()` and the classification tree dendogram is plotted using `fancyRpartPlot()`.
+
 ```{r , echo=TRUE}
-str(pml_training)
+# create classification tree model from for variable classe in the training dataset
+modFit_PT <- rpart(classe ~ ., data=train_data, method="class")
 ```
 
 
-<br><br>
+```{r , echo=TRUE}
+
+fancyRpartPlot(modFit_PT)
+```
+
+In order to validate the model *modFit_PT*, it is applied to the test dataset *test_data* and the accuracy of the prediction is determined using `confusionMatrix()`
+```{r , echo=TRUE}
+
+predict_PT <- predict(modFit_PT, test_data, type = "class")
+cm_PT <- confusionMatrix(predict_PT, test_data$classe)
+cm_PT
+```
+The resulting model has a **prediction accuracy** on the test dataset of **`r round(cm_PT[[3]][1]*100,1)`%**. Therefore, the **out-of-sample error** is (100 -  `r round(cm_PT[[3]][1]*100,1)`%) =  **`r round(100 - cm_PT[[3]][1]*100,1)`%**. So, more than 1 in 4 predictions is expected to be incorrect. 
+
+## Prediction using Random Forest Trees
+In order to improve prediction accuracy, a random forest tree model is created using `randomForest()`. With increasing number of trees the errors drops until it plateaus above ~150 trees.  
+
+```{r , echo=TRUE}
+#modFit_RF <- train(classe~ .,data=train_data, method="rf")
+modFit_RF <- randomForest(classe ~ ., data=train_data, importance=TRUE)
+plot(modFit_RF)
+```
+
+In order to validate the model *modFit_RF*, it is applied to the test dataset *test_data* and the accuracy of the prediction is determined using `confusionMatrix()`.
+```{r , echo=TRUE}
+predict_RF <- predict(modFit_RF, test_data, type = "class")
+```
+
+
+```{r , echo=TRUE}
+cm_RF <- confusionMatrix(predict_RF, test_data$classe)
+cm_RF
+```
+The resulting model has a **prediction accuracy** on the test dataset of **`r round(cm_RF[[3]][1]*100,1)`%**. Therefore, the **out-of-sample error** is (100 -  `r round(cm_RF[[3]][1]*100,1)`%) =  **`r round(100 - cm_RF[[3]][1]*100,1)`%**. This is a significant improvement over the classification tree. The value is so high that theoretically, some overfitting may be present.
+
+## Predicting the quiz dataset
+With the random forest model giving such high accuracy, it is used to predict the results for the quiz dataset.
+
+```{r , echo=TRUE}
+# Using modFit_RF to predict quiz results
+quiz_RF <- predict(modFit_RF, quizset, type = "class")
+quiz_RF
+```
+
 
