@@ -10,7 +10,7 @@
 
 library(shiny)
 
-URL <- "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv"
+URL <- "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv"
 Quake_30days <- read.table(URL, sep = ",", header = T)
 
 conv.time <- function(vector){
