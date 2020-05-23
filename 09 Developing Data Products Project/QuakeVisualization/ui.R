@@ -21,7 +21,7 @@ shinyUI(fluidPage(
     every 15 minutes."),
   "This app downloads the latest 30-day feed, filters for California
     as the epicenter location, and displays them.",
-  p("The source code for this app is posted ", a(href="https://github.com/dirkhello/datasciencecoursera/tree/master/9%20Developing%20Data%20Products/QuakeVisualization",
+  p("The source code for this app is posted ", a(href="https://github.com/DataDirk/datasciencecoursera-Projects/tree/master/09%20Developing%20Data%20Products%20Project/QuakeVisualization",
                                                  "on Github.")),
   wellPanel(
           h4("Instructions for Use:"),

@@ -5,8 +5,8 @@ account: datadirk
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 120386
-bundleId: 3180416
+bundleId: 3180434
 url: https://datadirk.shinyapps.io/QuakeVisualization/
-when: 1590191046.47929
+when: 1590191729.14183
 asMultiple: FALSE
 asStatic: FALSE
