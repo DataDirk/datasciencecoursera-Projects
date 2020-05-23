@@ -26,7 +26,7 @@ Data
 <small>The USGS data used in the app is the 30-day list of all global seismic events:
 
 ```{r, echo=TRUE}
-URL <- "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv"
+URL <- "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv"
 Quake_30days <- read.table(URL, sep = ",", header = T)
 ```
 
@@ -65,8 +65,8 @@ References
 
 [1]: Developing Data Products Course on Coursera.com -  [https://www.coursera.org/learn/data-products/home/welcome](https://www.coursera.org/learn/data-products/home/welcome)
 
-[2]: USGS Real-time Earthquake Feeds -  [http://earthquake.usgs.gov/earthquakes/feed/v1.0/csv.php](http://earthquake.usgs.gov/earthquakes/feed/v1.0/csv.php)
+[2]: USGS Real-time Earthquake Feeds -  [https://earthquake.usgs.gov/earthquakes/feed/v1.0/csv.php](https://earthquake.usgs.gov/earthquakes/feed/v1.0/csv.php)
 
 [3]: Quake Visualization App on Shinyapps.io -  [https://datadirk.shinyapps.io/QuakeVisualization/](https://datadirk.shinyapps.io/QuakeVisualization/)
 
-[4]: Shiny App Source Code on Github -  [https://github.com/dirkhello/datasciencecoursera/tree/master/9%20Developing%20Data%20Products/QuakeVisualization](https://github.com/dirkhello/datasciencecoursera/tree/master/9%20Developing%20Data%20Products/QuakeVisualization)
+[4]: Shiny App Source Code on Github -  [https://github.com/DataDirk/datasciencecoursera-Projects/tree/master/09%20Developing%20Data%20Products%20Project/QuakeVisualization](https://github.com/DataDirk/datasciencecoursera-Projects/tree/master/09%20Developing%20Data%20Products%20Project/QuakeVisualization)
